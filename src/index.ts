@@ -204,7 +204,7 @@ function renderHubPage(index: HubIndex): string {
 
   /* Navbar */
   .navbar{position:sticky;top:0;z-index:100;background:rgba(10,14,20,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:.85rem 1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
-  .logo{display:flex;align-items:center;gap:.6rem;font-size:1.25rem;font-weight:700;color:var(--accent);text-decoration:none;white-space:nowrap}
+  .logo{display:flex;align-items:center;gap:.6rem;font-size:1.25rem;font-weight:700;color:#f85149;text-decoration:none;white-space:nowrap}
   .logo-icon{font-size:1.5rem}
   .install-box{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .5rem .35rem .85rem;gap:.5rem;flex:1;max-width:480px;min-width:240px}
   .install-box code{font-size:.78rem;color:var(--green);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"SF Mono",Menlo,Consolas,monospace}
@@ -287,7 +287,7 @@ function renderHubPage(index: HubIndex): string {
 <body>
 
 <nav class="navbar">
-  <a href="/" class="logo"><span class="logo-icon">⚡</span> Skill Hub</a>
+  <a href="/" class="logo"><span class="logo-icon">⚡</span> Alan's Skill Hub</a>
   <div class="install-box">
     <code>npx -y skills add skill.alanzeng.com --skill '*' --yes</code>
     <button class="copy-btn" onclick="copyInstall(this)">Copy</button>
@@ -301,7 +301,6 @@ function renderHubPage(index: HubIndex): string {
 <section class="hero">
   <div class="hero-badge">● Personal Skill Registry</div>
   <h1>Skills for AI Agents</h1>
-  <p>精选、定制的 AI agent skills 集合 — 个人原创、社区 upstream 定制化 fork，一键安装到任何支持 skills CLI 的 agent。</p>
   <div class="hero-stats">
     <div class="stat"><div class="stat-num" id="skill-count">${allSkillsCount}</div><div class="stat-label">Skills</div></div>
     <div class="stat"><div class="stat-num">${index.categories.length}</div><div class="stat-label">Categories</div></div>
