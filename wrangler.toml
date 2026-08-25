@@ -1,0 +1,23 @@
+name = "skill-hub"
+main = "src/index.ts"
+compatibility_date = "2025-08-25"
+compatibility_flags = ["nodejs_compat"]
+
+account_id = "f15741cdd7efe307679ea99df9da5582"
+
+# KV namespace for caching skill metadata
+[[kv_namespaces]]
+binding = "SKILL_CACHE"
+id = "42bca62b834d4153a873f1b0bc0c68b1"
+
+# Environment variables
+[vars]
+GITHUB_REPO = "alanzeng/skill-hub"
+GITHUB_BRANCH = "main"
+SKILLS_PATH = "skills"
+
+# Custom domain
+# [env.production]
+# routes = [
+#   { pattern = "skill.alanzeng.com", custom_domain = true }
+# ]
