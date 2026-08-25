@@ -22,7 +22,8 @@
       "tags": ["meta", "discovery", "installation", "guide"],
       "author": "alanzeng",
       "version": "1.1.0",
-      "source": "custom"
+      "source": "custom",
+      "files": ["SKILL.md"]
     },
     {
       "name": "skillhub-publish",
@@ -32,7 +33,8 @@
       "tags": ["meta", "publish", "deploy", "git", "github"],
       "author": "alanzeng",
       "version": "1.0.0",
-      "source": "custom"
+      "source": "custom",
+      "files": ["SKILL.md"]
     },
     {
       "name": "cloudflare-deploy",
@@ -43,7 +45,8 @@
       "author": "cloudflare",
       "version": "1.0.0",
       "source": "upstream",
-      "upstream_url": "https://github.com/openai/skills/tree/main/skills/.curated/cloudflare-deploy"
+      "upstream_url": "https://github.com/openai/skills/tree/main/skills/.curated/cloudflare-deploy",
+      "files": ["SKILL.md"]
     },
     {
       "name": "skill-hub-hello",
@@ -53,7 +56,8 @@
       "tags": ["demo", "hello", "test"],
       "author": "alanzeng",
       "version": "1.0.0",
-      "source": "custom"
+      "source": "custom",
+      "files": ["SKILL.md"]
     },
     {
       "name": "lark-native-block-migration",
@@ -69,7 +73,15 @@
       ],
       "author": "alanzeng",
       "version": "1.0.0",
-      "source": "custom"
+      "source": "custom",
+      "files": [
+        "SKILL.md",
+        "agents/openai.yaml",
+        "references/artifacts.md",
+        "references/fidelity.md",
+        "scripts/init_run.py",
+        "scripts/verify_artifacts.py"
+      ]
     }
   ]
 }

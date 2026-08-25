@@ -8,6 +8,7 @@ interface SkillMeta {
   version: string;
   source: "custom" | "upstream" | "forked";
   upstream_url?: string;
+  files?: string[];
 }
 
 interface Category {
@@ -257,7 +258,7 @@ function renderHubPage(index: HubIndex): string {
     const cat = index.categories.find(c => c.id === s.category);
     const tags = s.tags.map(t => `<a class="tag" onclick="filterTag('${escapeHtml(t)}');return false">#${escapeHtml(t)}</a>`).join(" ");
     const badge = s.source === "custom" ? "badge-custom" : s.source === "upstream" ? "badge-upstream" : "badge-forked";
-    const cmd = `npx -y skills add ${HUB_URL.replace("https://","")} --skill ${s.path} --yes`;
+    const cmd = `npx -y skills add ${HUB_URL} --skill ${s.path} --yes`;
     return `<div class="skill-item" data-cat="${s.category}" data-q="${(s.name+" "+s.description+" "+s.tags.join(" ")).toLowerCase()}">
   <div class="skill-head">
     <span class="skill-title"><a href="/skills/${s.path}">${cat?.icon ?? "📌"} ${escapeHtml(s.name)}</a></span>
@@ -288,7 +289,7 @@ function renderHubPage(index: HubIndex): string {
 <header class="site-header"><div class="container">
   <a href="/" class="brand"><span class="brand-dot"></span>Alan's Skill Hub</a>
   <div class="header-install">
-    <code>npx -y skills add skill.alanzeng.com --skill '*' --yes</code>
+    <code>npx -y skills add ${HUB_URL} --skill '*' --yes</code>
     <button onclick="cp(this)">Copy</button>
   </div>
   <nav class="header-nav">
@@ -350,7 +351,7 @@ function renderSkillPage(skill: SkillMeta, md: string, index: HubIndex): string 
   const { body } = parseFrontmatter(md);
   const cat = index.categories.find(c => c.id === skill.category);
   const badge = skill.source === "custom" ? "badge-custom" : skill.source === "upstream" ? "badge-upstream" : "badge-forked";
-  const cmd = `npx -y skills add ${HUB_URL.replace("https://","")} --skill ${skill.path} --yes`;
+  const cmd = `npx -y skills add ${HUB_URL} --skill ${skill.path} --yes`;
   const tags = skill.tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join(" ");
 
   return `<!DOCTYPE html>
@@ -447,12 +448,36 @@ export default {
     try {
       const index = await getIndex(env);
 
+      // Well-known discovery endpoints for `npx skills add https://skill.alanzeng.com`
+      if (path === "/.well-known/agent-skills/index.json" || path === "/.well-known/skills/index.json") {
+        return jsonResponse({
+          skills: index.skills.map(s => ({
+            name: s.name,
+            description: s.description,
+            files: s.files ?? ["SKILL.md"],
+          })),
+        });
+      }
+
+      // Serve skill files under both well-known paths
+      const wkMatch = path.match(/^\/\.well-known\/(?:agent-skills|skills)\/([^/]+)\/(.+)$/);
+      if (wkMatch) {
+        const [, sp, fp] = wkMatch;
+        const skill = index.skills.find(s => s.path === sp || s.name === sp);
+        if (!skill) return new Response("Not found", { status: 404 });
+        const text = await fetchRaw(`${env.SKILLS_PATH}/${skill.path}/${fp}`, env);
+        if (!text) return new Response("Not found", { status: 404 });
+        const ext = fp.split(".").pop() ?? "";
+        const ct: Record<string, string> = { md: "text/markdown", json: "application/json", js: "application/javascript", ts: "application/typescript", py: "text/x-python", sh: "text/x-sh", yaml: "text/yaml", yml: "text/yaml", txt: "text/plain", py: "text/x-python" };
+        return rawResponse(text, ct[ext] ?? "application/octet-stream");
+      }
+
       if (path === "/api/skills" || path === "/skills.json") {
         return jsonResponse({
           name: "skill-hub",
           description: "Personal skill registry by alanzeng",
           url: HUB_URL,
-          install: `npx -y skills add ${HUB_URL.replace("https://","")} --skill '*' --yes`,
+          install: `npx -y skills add ${HUB_URL} --skill '*' --yes`,
           categories: index.categories,
           skills: index.skills,
           total: index.skills.length,
@@ -470,7 +495,7 @@ export default {
         const { body, frontmatter } = md ? parseFrontmatter(md) : { body: "", frontmatter: {} };
         return jsonResponse({
           ...skill,
-          install: `npx -y skills add ${HUB_URL.replace("https://","")} --skill ${skill.path} --yes`,
+          install: `npx -y skills add ${HUB_URL} --skill ${skill.path} --yes`,
           raw_url: `${HUB_URL}/skills/${skill.path}/SKILL.md`,
           github_url: `https://github.com/${env.GITHUB_REPO}/tree/${env.GITHUB_BRANCH}/${env.SKILLS_PATH}/${skill.path}`,
           body,
@@ -511,9 +536,9 @@ export default {
       if (path === "/install.sh" || path === "/install") {
         const lines = [
           "#!/bin/bash",
-          'echo "Installing skills from skill.alanzeng.com..."',
+          'echo "Installing skills from https://skill.alanzeng.com..."',
           "if command -v npx &>/dev/null; then",
-          "  npx -y skills add skill.alanzeng.com --skill '*' --yes",
+          `  npx -y skills add ${HUB_URL} --skill '*' --yes`,
           '  echo "Done. Restart your agent."',
           "else",
           '  echo "Install Node.js first: https://nodejs.org"',
@@ -536,7 +561,7 @@ export default {
         if (accept.includes("application/json")) {
           return jsonResponse({
             name: "skill-hub", url: HUB_URL,
-            install: `npx -y skills add ${HUB_URL.replace("https://","")} --skill '*' --yes`,
+            install: `npx -y skills add ${HUB_URL} --skill '*' --yes`,
             total_skills: index.skills.length, categories_count: index.categories.length,
             endpoints: { skills: "/api/skills", categories: "/api/categories", skill: "/api/skills/:name", raw: "/skills/:name/SKILL.md", install: "/install.sh" },
           });

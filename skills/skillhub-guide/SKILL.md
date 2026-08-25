@@ -14,9 +14,36 @@ The Skill Hub is a centralized registry of AI agent skills. It contains three ty
 - **Forked** — open-source skills with personalized modifications
 - **Upstream** — curated open-source skills mirrored for convenience
 
-The hub is backed by a Cloudflare Worker that reads from a GitHub repository (`alanzeng423/skill-hub`), with KV caching.
+The hub is backed by a Cloudflare Worker that reads from a GitHub repository (`alanzeng423/skill-hub`), with KV caching. It supports the standard `npx skills` well-known discovery protocol.
 
-## API Endpoints
+## How to Install Skills
+
+Use the standard `npx skills` CLI. **Always include `https://` in the hub URL** — without it, the CLI treats the domain as a Git repository name.
+
+```bash
+# Install all skills
+npx -y skills add https://skill.alanzeng.com --skill '*' --yes
+
+# Install a specific skill
+npx -y skills add https://skill.alanzeng.com --skill <skill-name> --yes
+
+# Examples:
+npx -y skills add https://skill.alanzeng.com --skill skillhub-guide --yes
+npx -y skills add https://skill.alanzeng.com --skill lark-native-block-migration --yes
+```
+
+## Standard Discovery Endpoints (for `npx skills` CLI)
+
+The hub implements the well-known skill discovery protocol:
+
+- `GET /.well-known/agent-skills/index.json` — V1 index with `name`, `description`, `files` per skill
+- `GET /.well-known/skills/index.json` — alias for the same
+- `GET /.well-known/agent-skills/<skill-name>/SKILL.md` — raw SKILL.md for a skill
+- `GET /.well-known/agent-skills/<skill-name>/<file>` — supporting files (scripts, references, etc.)
+
+These are the endpoints the `npx skills` CLI uses automatically when you run `npx -y skills add https://skill.alanzeng.com`.
+
+## API Endpoints (for programmatic access)
 
 All endpoints return JSON and support CORS. Base URL: `https://skill.alanzeng.com`
 
@@ -42,7 +69,7 @@ Returns detailed skill info including the parsed SKILL.md body, frontmatter, ins
 ```
 GET /skills/{skill-path}/SKILL.md
 ```
-Returns the raw Markdown content of a skill's SKILL.md file. Use this when you need to read a skill's instructions directly.
+Returns the raw Markdown content of a skill's SKILL.md file.
 
 ### 5. Fetch raw skill files
 ```
@@ -50,31 +77,19 @@ GET /skills/{skill-path}/{file-path}
 ```
 Returns raw content of any file within a skill directory (e.g., scripts, templates, references).
 
-## How to Install Skills
-
-Skills use the standard `npx skills` CLI. The hub URL is `skill.alanzeng.com`.
-
-```bash
-# Install all skills
-npx -y skills add skill.alanzeng.com --skill '*' --yes
-
-# Install a specific skill
-npx -y skills add skill.alanzeng.com --skill <skill-path> --yes
-```
-
 ## How to Discover Skills
 
 When looking for a skill to accomplish a task:
 
-1. First, fetch `GET https://skill.alanzeng.com/api/skills` to get the full index.
+1. Fetch `GET https://skill.alanzeng.com/api/skills` to get the full index.
 2. Filter by `category` or search through `tags` and `description` fields to find relevant skills.
 3. Fetch the individual skill's detail from `GET /api/skills/{path}` to read its full instructions.
 4. Alternatively, fetch the raw SKILL.md from `GET /skills/{path}/SKILL.md`.
-5. If you decide to install it, use the `install` command provided in the skill's JSON response.
+5. Install with `npx -y skills add https://skill.alanzeng.com --skill <name> --yes`.
 
 ## Categories
 
-Available categories (as of last update):
+Available categories:
 - `devops` — Deployment, CI/CD, infrastructure
 - `cloudflare` — Cloudflare platform skills
 - `feishu` — Feishu/Lark collaboration
@@ -87,19 +102,19 @@ Available categories (as of last update):
 
 ## Adding New Skills
 
-When instructed to add or publish a skill to this hub, install and use the **skillhub-publish** skill from this hub — it contains the complete publishing workflow including file structure, index.json schema, git commands, and cache invalidation:
+When instructed to add or publish a skill to this hub, install and use the **skillhub-publish** skill:
 
 ```
-npx -y skills add skill.alanzeng.com --skill skillhub-publish --yes
+npx -y skills add https://skill.alanzeng.com --skill skillhub-publish --yes
 ```
 
 In short:
 1. Create a directory under `skills/` in the `alanzeng423/skill-hub` repo
 2. Add a `SKILL.md` with YAML frontmatter (`name`, `description`)
-3. Add optional supporting files (scripts/, templates/, examples/) alongside SKILL.md
-4. Update `skills/index.json` to register the skill with category, tags, author, version, source
+3. Add optional supporting files (scripts/, templates/, examples/, references/) alongside SKILL.md
+4. Update `skills/index.json` to register the skill with category, tags, author, version, source, **and a `files` array** listing all files (starting with `"SKILL.md"`)
 5. Push to the `main` branch — the hub picks up changes within 5 minutes (KV cache TTL)
-6. Optionally clear KV cache for immediate effect: `npx wrangler kv key delete hub:index --remote`
+6. Optionally clear KV cache for immediate effect
 
 ## Web UI
 
@@ -109,4 +124,5 @@ Visit `https://skill.alanzeng.com` in a browser to browse skills visually with c
 
 - The hub has a 5-minute cache. Changes pushed to GitHub may take up to 5 minutes to appear.
 - All endpoints are public and read-only; no authentication required.
+- Always use `https://skill.alanzeng.com` (with `https://`) when installing via `npx skills`.
 - The raw SKILL.md endpoint is the canonical source for skill instructions.
