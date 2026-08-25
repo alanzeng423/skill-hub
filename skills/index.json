@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated_at": "2026-08-25T00:00:00Z",
+  "updated_at": "2026-08-25T12:08:12Z",
   "categories": [
     { "id": "devops", "name": "DevOps & Deployment", "icon": "🚀", "description": "Deploy, build, and manage infrastructure" },
     { "id": "cloudflare", "name": "Cloudflare", "icon": "⚡", "description": "Cloudflare Workers, Pages, KV, D1, R2 and more" },
@@ -51,6 +51,22 @@
       "path": "skill-hub-hello",
       "category": "meta",
       "tags": ["demo", "hello", "test"],
+      "author": "alanzeng",
+      "version": "1.0.0",
+      "source": "custom"
+    },
+    {
+      "name": "lark-native-block-migration",
+      "description": "Inventory, plan, execute, resume, and verify high-fidelity cross-tenant Lark/Feishu document migrations using native blocks.",
+      "path": "lark-native-block-migration",
+      "category": "feishu",
+      "tags": [
+        "lark",
+        "feishu",
+        "migration",
+        "docx",
+        "native-blocks"
+      ],
       "author": "alanzeng",
       "version": "1.0.0",
       "source": "custom"

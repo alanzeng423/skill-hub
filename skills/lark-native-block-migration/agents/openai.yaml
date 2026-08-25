@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lark/飞书原生块迁移"
+  short_description: "High-fidelity cross-tenant Lark and Feishu migration"
+  default_prompt: "Use $lark-native-block-migration to inventory and migrate a Lark document tree to Feishu with native blocks and verification."
