@@ -12,7 +12,7 @@ id = "42bca62b834d4153a873f1b0bc0c68b1"
 
 # Environment variables
 [vars]
-GITHUB_REPO = "alanzeng/skill-hub"
+GITHUB_REPO = "alanzeng423/skill-hub"
 GITHUB_BRANCH = "main"
 SKILLS_PATH = "skills"
 
