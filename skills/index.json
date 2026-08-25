@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "updated_at": "2026-08-25T00:00:00Z",
+  "categories": [
+    { "id": "devops", "name": "DevOps & Deployment", "icon": "🚀", "description": "Deploy, build, and manage infrastructure" },
+    { "id": "cloudflare", "name": "Cloudflare", "icon": "⚡", "description": "Cloudflare Workers, Pages, KV, D1, R2 and more" },
+    { "id": "feishu", "name": "Feishu / Lark", "icon": "🐦", "description": "飞书/Lark collaboration tools" },
+    { "id": "ai", "name": "AI & LLM", "icon": "🤖", "description": "LLM agents, AI APIs, model integration" },
+    { "id": "frontend", "name": "Frontend", "icon": "🎨", "description": "UI, CSS, React, frameworks" },
+    { "id": "backend", "name": "Backend", "icon": "⚙️", "description": "APIs, databases, server logic" },
+    { "id": "productivity", "name": "Productivity", "icon": "📋", "description": "Workflow automation and productivity tools" },
+    { "id": "security", "name": "Security", "icon": "🔒", "description": "Security analysis, pentesting, best practices" },
+    { "id": "meta", "name": "Meta", "icon": "📦", "description": "Skills about skills and the hub itself" },
+    { "id": "other", "name": "Other", "icon": "📌", "description": "Miscellaneous skills" }
+  ],
+  "skills": [
+    {
+      "name": "skillhub-guide",
+      "description": "Teaches AI agents how to discover, browse, and install skills from this personal skill hub. Use this first when connecting to skill.alanzeng.com.",
+      "path": "skillhub-guide",
+      "category": "meta",
+      "tags": ["meta", "discovery", "installation"],
+      "author": "alanzeng",
+      "version": "1.0.0",
+      "source": "custom"
+    },
+    {
+      "name": "cloudflare-deploy",
+      "description": "Deploy applications and infrastructure to Cloudflare using Workers, Pages, KV, D1, R2, Durable Objects and related services.",
+      "path": "cloudflare-deploy",
+      "category": "cloudflare",
+      "tags": ["cloudflare", "deploy", "workers", "pages"],
+      "author": "cloudflare",
+      "version": "1.0.0",
+      "source": "upstream",
+      "upstream_url": "https://github.com/openai/skills/tree/main/skills/.curated/cloudflare-deploy"
+    },
+    {
+      "name": "skill-hub-hello",
+      "description": "A demo skill that says hello from your personal skill hub. Use this to verify your skill hub is working correctly.",
+      "path": "skill-hub-hello",
+      "category": "meta",
+      "tags": ["demo", "hello", "test"],
+      "author": "alanzeng",
+      "version": "1.0.0",
+      "source": "custom"
+    }
+  ]
+}
