@@ -8,14 +8,12 @@ interface SkillMeta {
   version: string;
   source: "custom" | "upstream" | "forked";
   upstream_url?: string;
-  repo?: string;
 }
 
 interface Category {
   id: string;
   name: string;
   icon: string;
-  description: string;
 }
 
 interface HubIndex {
@@ -34,6 +32,7 @@ interface Env {
 
 const CACHE_TTL = 300;
 const CACHE_TTL_LONG = 1800;
+const HUB_URL = "https://skill.alanzeng.com";
 
 function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data, null, 2), {
@@ -100,195 +99,181 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-const PAGE_CSS = `
+const CSS = `
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#ffffff;--bg2:#f6f8fa;--bg3:#eef1f5;
-  --border:#d0d7de;--border2:#d8dee4;
-  --fg:#1f2328;--fg2:#656d76;--fg3:#8b949e;
-  --accent:#0969da;--accent-hover:#0550ae;
-  --green:#1a7f37;--green-bg:#dafbe1;--green-border:#4ac26b;
-  --purple:#8250df;--purple-bg:#f5f0ff;--purple-border:#d8b4fe;
-  --orange:#bc4c00;--orange-bg:#fff1e5;--orange-border:#fb8f44;
-  --red:#cf222e;
-  --radius:6px;--radius-md:8px;--radius-lg:12px;
+  --bg:#ffffff;--bg-sub:#f6f8fa;--bg-muted:#eaeef2;
+  --border:#d0d7de;--border-muted:#d8dee4;
+  --fg:#1f2328;--fg-muted:#656d76;--fg-subtle:#8c959f;
+  --link:#0969da;--link-hover:#0550ae;
+  --red:#cf222e;--green:#1a7f37;--purple:#8250df;--orange:#bc4c00;
+  --code-bg:rgba(175,184,193,.2);--pre-bg:#f6f8fa;
+  --radius:6px;
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",Helvetica,Arial,sans-serif;
-  --mono:"SF Mono",Monaco,Consolas,"Liberation Mono",monospace;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
 }
 @media(prefers-color-scheme:dark){
   :root{
-    --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
-    --border:#30363d;--border2:#30363d;
-    --fg:#e6edf3;--fg2:#8b949e;--fg3:#6e7681;
-    --accent:#2f81f7;--accent-hover:#58a6ff;
-    --green:#3fb950;--green-bg:#033a16;--green-border:#238636;
-    --purple:#bc8cff;--purple-bg:#1f1f3a;--purple-border:#8957e5;
-    --orange:#d29922;--orange-bg:#3b2a0e;--orange-border:#9e6a03;
-    --red:#f85149;
+    --bg:#0d1117;--bg-sub:#161b22;--bg-muted:#21262d;
+    --border:#30363d;--border-muted:#30363d;
+    --fg:#e6edf3;--fg-muted:#8b949e;--fg-subtle:#6e7681;
+    --link:#2f81f7;--link-hover:#58a6ff;
+    --red:#f85149;--green:#3fb950;--purple:#bc8cff;--orange:#d29922;
+    --code-bg:rgba(110,118,129,.4);--pre-bg:#161b22;
   }
 }
-html{font-size:15px}
-body{font-family:var(--font);background:var(--bg);color:var(--fg);line-height:1.6;-webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}
-a:hover{color:var(--accent-hover);text-decoration:underline}
-code{font-family:var(--mono);font-size:.87em}
-.container{max-width:1012px;margin:0 auto;padding:0 24px}
+html{font-size:14px;line-height:1.5}
+body{font-family:var(--font);background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased}
+a{color:var(--link);text-decoration:none}
+a:hover{color:var(--link-hover);text-decoration:underline}
+code,pre{font-family:var(--mono)}
+.container{max-width:1012px;margin:0 auto;padding:0 16px}
 
-/* Header */
-.header{border-bottom:1px solid var(--border);background:var(--bg2)}
-.header-inner{display:flex;align-items:center;gap:16px;padding:12px 24px;max-width:1280px;margin:0 auto}
-.brand{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:600;color:var(--fg);text-decoration:none;white-space:nowrap}
-.brand:hover{text-decoration:none;color:var(--fg)}
-.brand-icon{font-size:20px}
-.install-box{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);flex:1;max-width:480px;min-width:0}
-.install-box code{flex:1;padding:6px 10px;font-size:12px;color:var(--green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono);border-right:1px solid var(--border)}
-.install-box button{background:transparent;border:none;color:var(--fg2);padding:6px 10px;font-size:12px;cursor:pointer;border-radius:0 var(--radius) var(--radius) 0;white-space:nowrap}
-.install-box button:hover{background:var(--bg3);color:var(--fg)}
-.header-links{display:flex;gap:16px;margin-left:auto}
-.header-links a{color:var(--fg2);font-size:14px}
-.header-links a:hover{color:var(--accent);text-decoration:none}
+/* Header - GitHub style */
+.site-header{background:var(--bg-sub);border-bottom:1px solid var(--border);padding:12px 0}
+.site-header .container{display:flex;align-items:center;gap:16px}
+.brand{font-size:16px;font-weight:700;color:var(--red);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.brand:hover{color:var(--red);text-decoration:none;opacity:.9}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block}
+.header-install{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);flex:1;max-width:460px;min-width:0}
+.header-install code{flex:1;padding:5px 10px;font-size:12px;color:var(--green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-right:1px solid var(--border)}
+.header-install button{background:transparent;border:none;color:var(--fg-muted);padding:5px 10px;font-size:12px;cursor:pointer;border-radius:0 var(--radius) var(--radius) 0;white-space:nowrap;font-family:var(--font)}
+.header-install button:hover{background:var(--bg-muted);color:var(--fg)}
+.header-nav{display:flex;gap:16px;margin-left:auto}
+.header-nav a{color:var(--fg-muted);font-size:14px}
+.header-nav a:hover{color:var(--link);text-decoration:none}
 
-/* Hero */
-.hero{text-align:center;padding:48px 24px 32px;max-width:720px;margin:0 auto}
-.hero h1{font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
-.hero .subtitle{font-size:16px;color:var(--fg2);margin-bottom:24px}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);border-radius:2em;padding:3px 12px;font-size:12px;font-weight:500;margin-bottom:16px}
-.stats{display:flex;gap:32px;justify-content:center}
-.stat{text-align:center}
-.stat-num{font-size:24px;font-weight:600;color:var(--fg)}
-.stat-label{font-size:12px;color:var(--fg3);text-transform:uppercase;letter-spacing:.04em}
+/* Page title area */
+.page-head{padding:32px 0 24px}
+.page-head h1{font-size:24px;font-weight:600;letter-spacing:-.01em;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.page-head .desc{color:var(--fg-muted);font-size:14px}
+.page-head .meta{display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--fg-subtle)}
+.page-head .meta strong{color:var(--fg);font-weight:600}
 
 /* Search */
-.search-wrap{max-width:1012px;margin:0 auto 20px;padding:0 24px}
-.search-input{width:100%;padding:8px 12px;font-size:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--fg);outline:none;font-family:var(--font)}
-.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(9,105,218,.15)}
-.search-input::placeholder{color:var(--fg3)}
+.search-bar{margin-bottom:16px}
+.search-bar input{width:100%;padding:5px 12px;font-size:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--fg);outline:none;font-family:var(--font);line-height:20px}
+.search-bar input:focus{border-color:var(--link);box-shadow:0 0 0 3px rgba(9,105,218,.3)}
+.search-bar input::placeholder{color:var(--fg-subtle)}
 
-/* Categories */
-.cats{max-width:1012px;margin:0 auto 24px;padding:0 24px;display:flex;gap:6px;flex-wrap:wrap}
-.cat-btn{display:inline-flex;align-items:center;gap:5px;background:transparent;border:1px solid var(--border);border-radius:2em;padding:4px 12px;font-size:13px;color:var(--fg2);cursor:pointer;transition:.1s;white-space:nowrap;font-family:var(--font)}
-.cat-btn:hover{border-color:var(--accent);color:var(--fg);background:var(--bg)}
-.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-.cat-btn .count{font-size:11px;color:var(--fg3);background:var(--bg3);border-radius:10px;padding:0 6px;line-height:18px}
-.cat-btn.active .count{background:rgba(255,255,255,.2);color:#fff}
+/* Category filters */
+.cats{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.cat-btn{background:transparent;border:1px solid transparent;border-radius:2em;padding:3px 10px;font-size:12px;color:var(--fg-muted);cursor:pointer;transition:.1s;white-space:nowrap;font-family:var(--font);line-height:20px}
+.cat-btn:hover{border-color:var(--border);color:var(--fg)}
+.cat-btn.active{background:var(--bg-muted);border-color:transparent;color:var(--fg);font-weight:500}
+.cat-btn .cnt{color:var(--fg-subtle);margin-left:4px}
 
-/* Repo list - GitHub style */
-.repo-list{max-width:1012px;margin:0 auto;padding:0 24px 64px}
-.repo-item{padding:16px 0;border-bottom:1px solid var(--border)}
-.repo-item:last-child{border-bottom:none}
-.repo-item.hidden{display:none}
-.repo-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
-.repo-name{font-size:16px;font-weight:600}
-.repo-name a{color:var(--accent);text-decoration:none}
-.repo-name a:hover{text-decoration:underline}
-.repo-name .prefix{color:var(--fg2);font-weight:400}
-.badge{font-size:11px;font-weight:500;padding:1px 7px;border-radius:2em;border:1px solid;line-height:18px}
-.badge-custom{color:var(--green);background:var(--green-bg);border-color:var(--green-border)}
-.badge-upstream{color:var(--purple);background:var(--purple-bg);border-color:var(--purple-border)}
-.badge-forked{color:var(--orange);background:var(--orange-bg);border-color:var(--orange-border)}
-.repo-version{font-size:12px;color:var(--fg3);font-family:var(--mono)}
-.repo-desc{font-size:14px;color:var(--fg2);margin-bottom:8px;line-height:1.5}
-.repo-meta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--fg3);flex-wrap:wrap}
-.repo-meta .tag{display:inline-block;color:var(--accent);font-size:12px}
-.repo-meta .tag:hover{text-decoration:underline}
-.repo-meta .author{display:inline-flex;align-items:center;gap:3px}
-.install-inline{display:inline-flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:2px 6px;font-family:var(--mono);font-size:11px;color:var(--fg2);cursor:pointer;transition:.1s}
-.install-inline:hover{border-color:var(--accent);color:var(--accent)}
-.install-inline code{display:none}
-.empty{text-align:center;padding:48px 24px;color:var(--fg3);font-size:14px}
-.empty-icon{font-size:32px;margin-bottom:8px;opacity:.6}
+/* Skill list */
+.skill-list{padding:0 0 64px}
+.skill-item{padding:24px 0;border-bottom:1px solid var(--border)}
+.skill-item:last-child{border-bottom:none}
+.skill-item.hidden{display:none}
+.skill-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.skill-title{font-size:16px;font-weight:600}
+.skill-title a{color:var(--link);text-decoration:none}
+.skill-title a:hover{text-decoration:underline}
+.badge{font-size:11px;font-weight:500;padding:0 7px;border-radius:2em;border:1px solid;line-height:18px}
+.badge-custom{color:var(--green);background:rgba(26,127,55,.1);border-color:rgba(26,127,55,.4)}
+.badge-upstream{color:var(--purple);background:rgba(130,80,223,.1);border-color:rgba(130,80,223,.4)}
+.badge-forked{color:var(--orange);background:rgba(188,76,0,.1);border-color:rgba(188,76,0,.4)}
+.skill-ver{font-size:12px;color:var(--fg-subtle);font-family:var(--mono)}
+.skill-desc{font-size:14px;color:var(--fg-muted);margin:4px 0 8px;line-height:1.5}
+.skill-foot{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--fg-subtle);flex-wrap:wrap}
+.skill-foot .tag{color:var(--link)}
+.skill-foot .tag:hover{text-decoration:underline;cursor:pointer}
+.install-btn{display:inline-flex;align-items:center;gap:4px;background:var(--bg-sub);border:1px solid var(--border);border-radius:var(--radius);padding:2px 8px;font-family:var(--mono);font-size:11px;color:var(--fg-muted);cursor:pointer;transition:.1s;line-height:20px}
+.install-btn:hover{border-color:var(--link);color:var(--link)}
+.empty{text-align:center;padding:64px 16px;color:var(--fg-subtle);font-size:14px}
 
-/* Skill detail page */
-.breadcrumb{padding:16px 0;font-size:14px}
-.breadcrumb a{color:var(--fg2)}
-.skill-title{padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:24px}
-.skill-title h1{font-size:28px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.skill-desc{font-size:16px;color:var(--fg2);margin-bottom:12px}
-.skill-badges{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
-.skill-tags{display:flex;gap:4px;flex-wrap:wrap}
-.skill-tags .tag{font-size:12px;color:var(--accent)}
-.install-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-bottom:24px}
-.install-block .label{font-size:12px;font-weight:600;color:var(--fg);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
-.install-row{display:flex;gap:0;align-items:stretch;margin-bottom:0}
-.install-row code{flex:1;display:block;background:var(--bg);border:1px solid var(--border);border-right:none;border-radius:var(--radius) 0 0 var(--radius);padding:8px 12px;font-size:13px;color:var(--fg);font-family:var(--mono);overflow-x:auto;white-space:nowrap}
-.install-row button{background:var(--bg);border:1px solid var(--border);border-radius:0 var(--radius) var(--radius) 0;color:var(--fg2);padding:8px 14px;font-size:13px;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:.1s}
-.install-row button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
-.info-table{margin-bottom:24px}
-.info-row{display:flex;padding:8px 0;border-bottom:1px solid var(--border2);font-size:14px}
+/* Skill detail */
+.breadcrumb{padding:16px 0;font-size:14px;color:var(--fg-muted)}
+.breadcrumb a{color:var(--fg-muted)}
+.breadcrumb a:hover{color:var(--link)}
+.detail-head{padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.detail-head h1{font-size:24px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.detail-desc{font-size:16px;color:var(--fg-muted);margin-bottom:8px}
+.detail-meta{display:flex;gap:16px;font-size:12px;color:var(--fg-subtle);flex-wrap:wrap;align-items:center}
+.detail-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.detail-tags .tag{font-size:12px;color:var(--link)}
+
+.install-box{background:var(--bg-sub);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.install-box code{flex:1;font-size:13px;color:var(--green);font-family:var(--mono);overflow-x:auto;white-space:nowrap}
+.install-box button{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--fg-muted);padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--font);line-height:20px;transition:.1s;flex-shrink:0}
+.install-box button:hover{background:var(--link);color:#fff;border-color:var(--link)}
+
+.info-table{margin-bottom:24px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.info-row{display:flex;padding:8px 16px;border-bottom:1px solid var(--border);font-size:13px}
 .info-row:last-child{border-bottom:none}
-.info-row .info-label{width:120px;color:var(--fg3);font-weight:500;flex-shrink:0}
-.info-row .info-val{color:var(--fg2);font-family:var(--mono);font-size:13px;word-break:break-all}
-.info-row .info-val.plain{font-family:var(--font)}
-.markdown-body h2{font-size:20px;font-weight:600;margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
-.markdown-body h2:first-child{margin-top:0}
-.markdown-body h3{font-size:17px;font-weight:600;margin:24px 0 12px}
-.markdown-body p{margin-bottom:12px;color:var(--fg);line-height:1.7}
-.markdown-body ul,.markdown-body ol{margin-bottom:12px;padding-left:24px;color:var(--fg)}
+.info-row:nth-child(odd){background:var(--bg-sub)}
+.info-row .k{width:100px;color:var(--fg-muted);font-weight:500;flex-shrink:0}
+.info-row .v{color:var(--fg);word-break:break-all;font-family:var(--mono);font-size:12px}
+.info-row .v a{color:var(--link)}
+.info-row .v.plain{font-family:var(--font);font-size:13px}
+
+/* Markdown body - GitHub style */
+.markdown-body{font-size:14px;line-height:1.6;word-wrap:break-word}
+.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{margin-top:24px;margin-bottom:16px;font-weight:600;line-height:1.25}
+.markdown-body h1{font-size:2em;padding-bottom:.3em;border-bottom:1px solid var(--border)}
+.markdown-body h2{font-size:1.5em;padding-bottom:.3em;border-bottom:1px solid var(--border)}
+.markdown-body h3{font-size:1.25em}
+.markdown-body h4{font-size:1em}
+.markdown-body p{margin-bottom:16px;color:var(--fg);line-height:1.7}
+.markdown-body ul,.markdown-body ol{margin-bottom:16px;padding-left:2em;color:var(--fg)}
 .markdown-body li{margin-bottom:4px;line-height:1.7}
-.markdown-body code{background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:85%;color:var(--accent)}
-.markdown-body pre{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;overflow-x:auto;margin-bottom:16px;line-height:1.5}
-.markdown-body pre code{background:none;padding:0;font-size:13px;color:var(--fg);border-radius:0}
-.markdown-body blockquote{border-left:3px solid var(--border);padding-left:16px;color:var(--fg2);margin-bottom:12px}
-.markdown-body a{color:var(--accent)}
-.markdown-body strong{font-weight:600;color:var(--fg)}
-.markdown-body table{border-collapse:collapse;margin-bottom:16px;width:100%}
-.markdown-body th,.markdown-body td{border:1px solid var(--border);padding:6px 12px;font-size:14px;text-align:left}
-.markdown-body th{background:var(--bg2);font-weight:600}
-.page-footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--fg3);flex-wrap:wrap;gap:8px}
-.page-footer a{color:var(--fg2)}
+.markdown-body li>p{margin-top:8px;margin-bottom:8px}
+.markdown-body code{background:var(--code-bg);padding:.2em .4em;border-radius:6px;font-size:85%;color:var(--fg);font-family:var(--mono)}
+.markdown-body pre{background:var(--pre-bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;margin-bottom:16px;line-height:1.45;font-size:85%}
+.markdown-body pre code{background:transparent;padding:0;border-radius:0;font-size:100%;display:block;white-space:pre;color:var(--fg)}
+.markdown-body blockquote{border-left:.25em solid var(--border);padding:0 1em;color:var(--fg-muted);margin-bottom:16px}
+.markdown-body blockquote p{color:var(--fg-muted)}
+.markdown-body a{color:var(--link)}
+.markdown-body strong{font-weight:600}
+.markdown-body table{border-collapse:collapse;margin-bottom:16px;width:100%;display:block;overflow-x:auto}
+.markdown-body th,.markdown-body td{border:1px solid var(--border);padding:6px 13px;font-size:14px}
+.markdown-body th{background:var(--bg-sub);font-weight:600}
+.markdown-body tr:nth-child(2n){background:var(--bg-sub)}
+.markdown-body hr{height:1px;background:var(--border);border:0;margin:24px 0}
+.markdown-body img{max-width:100%;box-sizing:content-box}
+
+/* Footer */
+.site-footer{margin-top:48px;padding:24px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--fg-subtle);flex-wrap:wrap;gap:8px}
+.site-footer a{color:var(--fg-muted)}
+.site-footer a:hover{color:var(--link)}
 `;
 
-const SHARED_JS = `
-function copyText(btn) {
-  const code = btn.previousElementSibling;
-  navigator.clipboard.writeText(code.textContent);
-  const orig = btn.textContent;
-  btn.textContent = 'Copied!';
-  setTimeout(() => btn.textContent = orig, 1500);
+function copyJs(): string {
+  return `function cp(b){const c=b.previousElementSibling||b.parentElement.querySelector('code');navigator.clipboard.writeText(c.textContent);const o=b.textContent;b.textContent='Copied!';setTimeout(()=>b.textContent=o,1500)}`;
 }
-`;
 
 function renderHubPage(index: HubIndex): string {
-  const skillsByCategory: Record<string, SkillMeta[]> = {};
-  for (const s of index.skills) {
-    if (!skillsByCategory[s.category]) skillsByCategory[s.category] = [];
-    skillsByCategory[s.category].push(s);
-  }
+  const byCat: Record<string, SkillMeta[]> = {};
+  for (const s of index.skills) { (byCat[s.category] ??= []).push(s); }
 
-  const catButtons = index.categories
-    .map((c) => {
-      const count = skillsByCategory[c.id]?.length ?? 0;
-      return `<button class="cat-btn" data-cat="${c.id}" onclick="setCat('${c.id}')"><span>${c.icon}</span> ${escapeHtml(c.name)} <span class="count">${count}</span></button>`;
-    })
+  const catBtns = index.categories
+    .map(c => `<button class="cat-btn" data-cat="${c.id}" onclick="setCat('${c.id}')">${c.icon} ${escapeHtml(c.name)}<span class="cnt">${byCat[c.id]?.length ?? 0}</span></button>`)
     .join("");
 
-  const totalCustom = index.skills.filter((s) => s.source === "custom").length;
-
-  const items = index.skills
-    .map((s) => {
-      const cat = index.categories.find((c) => c.id === s.category);
-      const tagHtml = s.tags.map((t) => `<a class="tag" href="#" onclick="filterTag('${escapeHtml(t)}');return false">#${escapeHtml(t)}</a>`).join(" ");
-      const sourceBadge = s.source === "custom"
-        ? '<span class="badge badge-custom">Custom</span>'
-        : s.source === "upstream"
-          ? '<span class="badge badge-upstream">Upstream</span>'
-          : '<span class="badge badge-forked">Forked</span>';
-      const installCmd = `npx -y skills add skill.alanzeng.com --skill ${s.path} --yes`;
-      return `<div class="repo-item" data-cat="${s.category}" data-name="${escapeHtml(s.name).toLowerCase()}" data-desc="${escapeHtml(s.description).toLowerCase()}" data-tags="${s.tags.join(",").toLowerCase()}">
-  <div class="repo-head">
-    <span class="repo-name"><span class="prefix">${cat?.icon ?? "📌"} </span><a href="/skills/${s.path}">${escapeHtml(s.name)}</a></span>
-    ${sourceBadge}
-    <span class="repo-version">v${escapeHtml(s.version)}</span>
+  const items = index.skills.map(s => {
+    const cat = index.categories.find(c => c.id === s.category);
+    const tags = s.tags.map(t => `<a class="tag" onclick="filterTag('${escapeHtml(t)}');return false">#${escapeHtml(t)}</a>`).join(" ");
+    const badge = s.source === "custom" ? "badge-custom" : s.source === "upstream" ? "badge-upstream" : "badge-forked";
+    const cmd = `npx -y skills add ${HUB_URL.replace("https://","")} --skill ${s.path} --yes`;
+    return `<div class="skill-item" data-cat="${s.category}" data-q="${(s.name+" "+s.description+" "+s.tags.join(" ")).toLowerCase()}">
+  <div class="skill-head">
+    <span class="skill-title"><a href="/skills/${s.path}">${cat?.icon ?? "📌"} ${escapeHtml(s.name)}</a></span>
+    <span class="badge ${badge}">${s.source}</span>
+    <span class="skill-ver">v${escapeHtml(s.version)}</span>
   </div>
-  <p class="repo-desc">${escapeHtml(s.description)}</p>
-  <div class="repo-meta">
-    <span class="author">@${escapeHtml(s.author)}</span>
-    ${tagHtml ? `<span>${tagHtml}</span>` : ""}
-    <span class="install-inline" onclick="copyText(this)"><code>${escapeHtml(installCmd)}</code> Install</span>
+  <p class="skill-desc">${escapeHtml(s.description)}</p>
+  <div class="skill-foot">
+    <span>@${escapeHtml(s.author)}</span>
+    ${tags}
+    <span class="install-btn" onclick="cp(this)"><code>${escapeHtml(cmd)}</code> Install</span>
   </div>
 </div>`;
-    })
-    .join("");
+  }).join("");
+
+  const totalCustom = index.skills.filter(s => s.source === "custom").length;
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -296,88 +281,76 @@ function renderHubPage(index: HubIndex): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Alan's Skill Hub</title>
-<style>${PAGE_CSS}</style>
+<style>${CSS}</style>
 </head>
 <body>
+<header class="site-header"><div class="container">
+  <a href="/" class="brand"><span class="brand-dot"></span>Alan's Skill Hub</a>
+  <div class="header-install">
+    <code>npx -y skills add skill.alanzeng.com --skill '*' --yes</code>
+    <button onclick="cp(this)">Copy</button>
+  </div>
+  <nav class="header-nav">
+    <a href="/api/skills">API</a>
+    <a href="https://github.com/alanzeng423/skill-hub" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</div></header>
 
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="brand"><span class="brand-icon">⚡</span> Alan's Skill Hub</a>
-    <div class="install-box">
-      <code>npx -y skills add skill.alanzeng.com --skill '*' --yes</code>
-      <button onclick="copyText(this)">Copy</button>
+<main class="container">
+  <div class="page-head">
+    <h1><span class="brand-dot"></span> Skills</h1>
+    <div class="meta">
+      <span><strong>${index.skills.length}</strong> skills</span>
+      <span><strong>${index.categories.length}</strong> categories</span>
+      <span><strong>${totalCustom}</strong> custom</span>
     </div>
-    <nav class="header-links">
-      <a href="/api/skills">API</a>
-      <a href="https://github.com/alanzeng423/skill-hub" target="_blank" rel="noopener">GitHub</a>
-    </nav>
   </div>
-</header>
 
-<section class="hero">
-  <div class="hero-badge">● Personal Skill Registry</div>
-  <h1>Skills for AI Agents</h1>
-  <p class="subtitle">A curated collection of custom, forked, and upstream AI agent skills.</p>
-  <div class="stats">
-    <div class="stat"><div class="stat-num" id="totalCount">${index.skills.length}</div><div class="stat-label">Skills</div></div>
-    <div class="stat"><div class="stat-num">${index.categories.length}</div><div class="stat-label">Categories</div></div>
-    <div class="stat"><div class="stat-num">${totalCustom}</div><div class="stat-label">Custom</div></div>
+  <div class="search-bar">
+    <input type="text" id="q" placeholder="Search skills..." oninput="apply()">
   </div>
-</section>
 
-<div class="search-wrap">
-  <input class="search-input" type="text" id="q" placeholder="Search skills by name, description, or tag..." oninput="apply()">
-</div>
-
-<div class="cats">
-  <button class="cat-btn active" data-cat="all" onclick="setCat('all')"><span>📚</span> All <span class="count">${index.skills.length}</span></button>
-  ${catButtons}
-</div>
-
-<div class="repo-list">
-  ${items}
-  <div class="empty" id="empty" style="display:none"><div class="empty-icon">🔍</div><p>No skills match your search.</p></div>
-</div>
-
-<div class="container page-footer">
-  <span>© 2026 Alan</span>
-  <div>
-    <a href="/api/skills">JSON API</a> · <a href="/install.sh">Install Script</a> · <a href="https://github.com/alanzeng423/skill-hub" target="_blank" rel="noopener">Source</a>
+  <div class="cats">
+    <button class="cat-btn active" data-cat="all" onclick="setCat('all')">All<span class="cnt">${index.skills.length}</span></button>
+    ${catBtns}
   </div>
-</div>
 
-<script>
-${SHARED_JS}
-let activeCat='all';
-function setCat(cat){activeCat=cat;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));apply()}
+  <div class="skill-list">
+    ${items}
+    <div class="empty" id="empty" style="display:none">No matching skills.</div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 2026 Alan Zeng</span>
+    <div>
+      <a href="/api/skills">JSON API</a> · <a href="/install.sh">Install Script</a> · <a href="https://github.com/alanzeng423/skill-hub" target="_blank" rel="noopener">Source</a>
+    </div>
+  </footer>
+</main>
+
+<script>${copyJs()}
+let cat='all';
+function setCat(c){cat=c;document.querySelectorAll('.cat-btn').forEach(b=>b.classList.toggle('active',b.dataset.cat===c));apply()}
 function filterTag(t){document.getElementById('q').value=t;apply()}
 function apply(){
-  const q=document.getElementById('q').value.toLowerCase().trim();
-  let vis=0;
-  document.querySelectorAll('.repo-item').forEach(el=>{
-    const ok=activeCat==='all'||el.dataset.cat===activeCat;
-    const m=!q||el.dataset.name.includes(q)||el.dataset.desc.includes(q)||el.dataset.tags.split(',').some(t=>t.includes(q));
-    el.classList.toggle('hidden',!(ok&&m));
-    if(ok&&m)vis++;
+  const q=document.getElementById('q').value.toLowerCase().trim();let n=0;
+  document.querySelectorAll('.skill-item').forEach(el=>{
+    const ok=cat==='all'||el.dataset.cat===cat;
+    const m=!q||el.dataset.q.includes(q);
+    el.classList.toggle('hidden',!(ok&&m));if(ok&&m)n++;
   });
-  document.getElementById('empty').style.display=vis?'none':'block';
+  document.getElementById('empty').style.display=n?'none':'block';
 }
 </script>
-</body>
-</html>`;
+</body></html>`;
 }
 
 function renderSkillPage(skill: SkillMeta, md: string, index: HubIndex): string {
   const { body } = parseFrontmatter(md);
-  const cat = index.categories.find((c) => c.id === skill.category);
-  const sourceBadge = skill.source === "custom"
-    ? '<span class="badge badge-custom">Custom</span>'
-    : skill.source === "upstream"
-      ? '<span class="badge badge-upstream">Upstream</span>'
-      : '<span class="badge badge-forked">Forked</span>';
-  const installCmd = `npx -y skills add skill.alanzeng.com --skill ${skill.path} --yes`;
-  const tagsHtml = skill.tags.map((t) => `<span class="tag">#${escapeHtml(t)}</span>`).join(" ");
-  const escapedBody = JSON.stringify(body);
+  const cat = index.categories.find(c => c.id === skill.category);
+  const badge = skill.source === "custom" ? "badge-custom" : skill.source === "upstream" ? "badge-upstream" : "badge-forked";
+  const cmd = `npx -y skills add ${HUB_URL.replace("https://","")} --skill ${skill.path} --yes`;
+  const tags = skill.tags.map(t => `<span class="tag">#${escapeHtml(t)}</span>`).join(" ");
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -385,55 +358,57 @@ function renderSkillPage(skill: SkillMeta, md: string, index: HubIndex): string 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(skill.name)} · Alan's Skill Hub</title>
-<style>${PAGE_CSS}</style>
+<style>${CSS}</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="print" onload="this.media='all'">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+@media(prefers-color-scheme:dark){
+  .hljs{background:var(--pre-bg)!important;color:var(--fg)!important}
+}
+</style>
 </head>
 <body>
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="brand"><span class="brand-icon">⚡</span> Alan's Skill Hub</a>
-    <nav class="header-links">
-      <a href="/api/skills">API</a>
-      <a href="https://github.com/alanzeng423/skill-hub" target="_blank" rel="noopener">GitHub</a>
-    </nav>
-  </div>
-</header>
+<header class="site-header"><div class="container">
+  <a href="/" class="brand"><span class="brand-dot"></span>Alan's Skill Hub</a>
+  <nav class="header-nav">
+    <a href="/api/skills">API</a>
+    <a href="https://github.com/alanzeng423/skill-hub" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</div></header>
 
-<div class="container">
+<main class="container">
   <nav class="breadcrumb"><a href="/">← All skills</a></nav>
 
-  <div class="skill-title">
-    <h1>${cat?.icon ?? "📌"} ${escapeHtml(skill.name)} ${sourceBadge}</h1>
-    <p class="skill-desc">${escapeHtml(skill.description)}</p>
-    <div class="skill-badges">
-      <span class="repo-version">v${escapeHtml(skill.version)}</span>
+  <div class="detail-head">
+    <h1>${cat?.icon ?? "📌"} ${escapeHtml(skill.name)} <span class="badge ${badge}">${skill.source}</span></h1>
+    <p class="detail-desc">${escapeHtml(skill.description)}</p>
+    <div class="detail-meta">
+      <span>v${escapeHtml(skill.version)}</span>
       <span>@${escapeHtml(skill.author)}</span>
       <span>${cat?.icon ?? "📌"} ${escapeHtml(cat?.name ?? "Other")}</span>
     </div>
-    <div class="skill-tags">${tagsHtml}</div>
+    <div class="detail-tags">${tags}</div>
   </div>
 
-  <div class="install-block">
-    <div class="label">Install</div>
-    <div class="install-row">
-      <code>${escapeHtml(installCmd)}</code>
-      <button onclick="copyText(this)">Copy</button>
-    </div>
+  <div class="install-box">
+    <code>${escapeHtml(cmd)}</code>
+    <button onclick="cp(this)">Copy</button>
   </div>
 
   <div class="info-table">
-    <div class="info-row"><span class="info-label">Author</span><span class="info-val plain">@${escapeHtml(skill.author)}</span></div>
-    <div class="info-row"><span class="info-label">Version</span><span class="info-val plain">${escapeHtml(skill.version)}</span></div>
-    <div class="info-row"><span class="info-label">Source</span><span class="info-val plain">${escapeHtml(skill.source)}</span></div>
-    <div class="info-row"><span class="info-label">Category</span><span class="info-val plain">${cat?.name ?? "Other"}</span></div>
-    ${skill.upstream_url ? `<div class="info-row"><span class="info-label">Upstream</span><span class="info-val"><a href="${escapeHtml(skill.upstream_url)}" target="_blank" rel="noopener">${escapeHtml(skill.upstream_url)}</a></span></div>` : ""}
-    <div class="info-row"><span class="info-label">GitHub</span><span class="info-val"><a href="https://github.com/alanzeng423/skill-hub/tree/main/skills/${skill.path}" target="_blank" rel="noopener">View on GitHub →</a></span></div>
-    <div class="info-row"><span class="info-label">Raw</span><span class="info-val"><a href="/skills/${skill.path}/SKILL.md">SKILL.md</a></span></div>
+    <div class="info-row"><span class="k">Author</span><span class="v plain">@${escapeHtml(skill.author)}</span></div>
+    <div class="info-row"><span class="k">Version</span><span class="v plain">${escapeHtml(skill.version)}</span></div>
+    <div class="info-row"><span class="k">Source</span><span class="v plain">${escapeHtml(skill.source)}</span></div>
+    <div class="info-row"><span class="k">Category</span><span class="v plain">${escapeHtml(cat?.name ?? "Other")}</span></div>
+    ${skill.upstream_url ? `<div class="info-row"><span class="k">Upstream</span><span class="v"><a href="${escapeHtml(skill.upstream_url)}" target="_blank" rel="noopener">${escapeHtml(skill.upstream_url)}</a></span></div>` : ""}
+    <div class="info-row"><span class="k">GitHub</span><span class="v"><a href="https://github.com/alanzeng423/skill-hub/tree/main/skills/${skill.path}" target="_blank" rel="noopener">github.com/alanzeng423/skill-hub →</a></span></div>
+    <div class="info-row"><span class="k">Raw URL</span><span class="v"><a href="/skills/${skill.path}/SKILL.md">${HUB_URL}/skills/${skill.path}/SKILL.md</a></span></div>
   </div>
 
-  <div class="markdown-body" id="content"></div>
+  <div class="markdown-body" id="md"></div>
 
-  <footer class="page-footer">
+  <footer class="site-footer">
     <a href="/">← Alan's Skill Hub</a>
     <div>
       <a href="/api/skills/${skill.path}">JSON</a> ·
@@ -441,16 +416,15 @@ function renderSkillPage(skill: SkillMeta, md: string, index: HubIndex): string 
       <a href="https://github.com/alanzeng423/skill-hub/tree/main/skills/${skill.path}" target="_blank" rel="noopener">GitHub</a>
     </div>
   </footer>
-</div>
+</main>
 
-<script>
-${SHARED_JS}
-const md = ${escapedBody};
+<script>${copyJs()}
+const md=${JSON.stringify(body)};
 marked.setOptions({gfm:true,breaks:false});
-document.getElementById('content').innerHTML = marked.parse(md);
+document.getElementById('md').innerHTML=marked.parse(md);
+document.querySelectorAll('.markdown-body pre code').forEach(b=>{try{hljs.highlightElement(b)}catch(e){}});
 </script>
-</body>
-</html>`;
+</body></html>`;
 }
 
 export default {
@@ -475,8 +449,8 @@ export default {
         return jsonResponse({
           name: "skill-hub",
           description: "Personal skill registry by alanzeng",
-          url: "https://skill.alanzeng.com",
-          install: "npx -y skills add skill.alanzeng.com --skill '*' --yes",
+          url: HUB_URL,
+          install: `npx -y skills add ${HUB_URL.replace("https://","")} --skill '*' --yes`,
           categories: index.categories,
           skills: index.skills,
           total: index.skills.length,
@@ -486,16 +460,16 @@ export default {
 
       if (path === "/api/categories") return jsonResponse(index.categories);
 
-      const skillApiMatch = path.match(/^\/api\/skills\/([^/]+)$/);
-      if (skillApiMatch) {
-        const skill = index.skills.find((s) => s.path === skillApiMatch[1]);
+      const apiMatch = path.match(/^\/api\/skills\/([^/]+)$/);
+      if (apiMatch) {
+        const skill = index.skills.find(s => s.path === apiMatch[1]);
         if (!skill) return jsonResponse({ error: "Skill not found" }, 404);
         const md = await getSkillMd(skill.path, env);
         const { body, frontmatter } = md ? parseFrontmatter(md) : { body: "", frontmatter: {} };
         return jsonResponse({
           ...skill,
-          install: `npx -y skills add skill.alanzeng.com --skill ${skill.path} --yes`,
-          raw_url: `https://skill.alanzeng.com/skills/${skill.path}/SKILL.md`,
+          install: `npx -y skills add ${HUB_URL.replace("https://","")} --skill ${skill.path} --yes`,
+          raw_url: `${HUB_URL}/skills/${skill.path}/SKILL.md`,
           github_url: `https://github.com/${env.GITHUB_REPO}/tree/${env.GITHUB_BRANCH}/${env.SKILLS_PATH}/${skill.path}`,
           body,
           frontmatter,
@@ -509,26 +483,26 @@ export default {
         return rawResponse(md);
       }
 
-      const rawFileMatch = path.match(/^\/skills\/([^/]+)\/(.+)$/);
-      if (rawFileMatch) {
-        const [, skillPath, filePath] = rawFileMatch;
-        if (filePath === "SKILL.md") {
-          const md = await getSkillMd(skillPath, env);
+      const fileMatch = path.match(/^\/skills\/([^/]+)\/(.+)$/);
+      if (fileMatch) {
+        const [, sp, fp] = fileMatch;
+        if (fp === "SKILL.md") {
+          const md = await getSkillMd(sp, env);
           if (!md) return new Response("Not found", { status: 404 });
           return rawResponse(md);
         }
-        const text = await fetchRaw(`${env.SKILLS_PATH}/${skillPath}/${filePath}`, env);
+        const text = await fetchRaw(`${env.SKILLS_PATH}/${sp}/${fp}`, env);
         if (!text) return new Response("Not found", { status: 404 });
-        const ext = filePath.split(".").pop() ?? "";
+        const ext = fp.split(".").pop() ?? "";
         const ct: Record<string, string> = { md: "text/markdown", json: "application/json", js: "application/javascript", ts: "application/typescript", py: "text/x-python", sh: "text/x-sh", yaml: "text/yaml", yml: "text/yaml", txt: "text/plain" };
         return rawResponse(text, ct[ext] ?? "application/octet-stream");
       }
 
       const pageMatch = path.match(/^\/skills\/([^/]+)$/);
       if (pageMatch) {
-        const skill = index.skills.find((s) => s.path === pageMatch[1]);
+        const skill = index.skills.find(s => s.path === pageMatch[1]);
         if (!skill) return new Response("Not found", { status: 404 });
-        const md = (await getSkillMd(skill.path, env)) ?? `---\nname: ${skill.name}\ndescription: ${skill.description}\n---\n\n# ${skill.name}\n\n${skill.description}`;
+        const md = (await getSkillMd(skill.path, env)) ?? `# ${skill.name}\n\n${skill.description}`;
         return htmlResponse(renderSkillPage(skill, md, index));
       }
 
@@ -537,7 +511,7 @@ export default {
           "#!/bin/bash",
           'echo "Installing skills from skill.alanzeng.com..."',
           "if command -v npx &>/dev/null; then",
-          '  npx -y skills add skill.alanzeng.com --skill \'*\' --yes',
+          "  npx -y skills add skill.alanzeng.com --skill '*' --yes",
           '  echo "Done. Restart your agent."',
           "else",
           '  echo "Install Node.js first: https://nodejs.org"',
@@ -554,8 +528,8 @@ export default {
         const accept = request.headers.get("Accept") ?? "";
         if (accept.includes("application/json")) {
           return jsonResponse({
-            name: "skill-hub", url: "https://skill.alanzeng.com",
-            install: "npx -y skills add skill.alanzeng.com --skill '*' --yes",
+            name: "skill-hub", url: HUB_URL,
+            install: `npx -y skills add ${HUB_URL.replace("https://","")} --skill '*' --yes`,
             total_skills: index.skills.length, categories_count: index.categories.length,
             endpoints: { skills: "/api/skills", categories: "/api/categories", skill: "/api/skills/:name", raw: "/skills/:name/SKILL.md", install: "/install.sh" },
           });
