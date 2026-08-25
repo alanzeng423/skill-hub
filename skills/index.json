@@ -16,10 +16,20 @@
   "skills": [
     {
       "name": "skillhub-guide",
-      "description": "Teaches AI agents how to discover, browse, and install skills from this personal skill hub. Use this first when connecting to skill.alanzeng.com.",
+      "description": "Teaches AI agents how to discover, browse, fetch, and install skills from this personal skill hub. Install this first when connecting to skill.alanzeng.com.",
       "path": "skillhub-guide",
       "category": "meta",
-      "tags": ["meta", "discovery", "installation"],
+      "tags": ["meta", "discovery", "installation", "guide"],
+      "author": "alanzeng",
+      "version": "1.1.0",
+      "source": "custom"
+    },
+    {
+      "name": "skillhub-publish",
+      "description": "Publish new skills or update existing skills to Alan's Skill Hub. Covers adding, updating, and removing skills via git or GitHub API, including index.json schema and cache invalidation.",
+      "path": "skillhub-publish",
+      "category": "meta",
+      "tags": ["meta", "publish", "deploy", "git", "github"],
       "author": "alanzeng",
       "version": "1.0.0",
       "source": "custom"

@@ -87,11 +87,19 @@ Available categories (as of last update):
 
 ## Adding New Skills
 
-When instructed to add a skill to this hub:
+When instructed to add or publish a skill to this hub, install and use the **skillhub-publish** skill from this hub — it contains the complete publishing workflow including file structure, index.json schema, git commands, and cache invalidation:
+
+```
+npx -y skills add skill.alanzeng.com --skill skillhub-publish --yes
+```
+
+In short:
 1. Create a directory under `skills/` in the `alanzeng423/skill-hub` repo
-2. Add a `SKILL.md` with proper frontmatter (`name`, `description`)
-3. Update `skills/index.json` to register the skill with appropriate category, tags, author, version, and source
-4. Push to the `main` branch — the hub picks up changes within 5 minutes (KV cache TTL)
+2. Add a `SKILL.md` with YAML frontmatter (`name`, `description`)
+3. Add optional supporting files (scripts/, templates/, examples/) alongside SKILL.md
+4. Update `skills/index.json` to register the skill with category, tags, author, version, source
+5. Push to the `main` branch — the hub picks up changes within 5 minutes (KV cache TTL)
+6. Optionally clear KV cache for immediate effect: `npx wrangler kv key delete hub:index --remote`
 
 ## Web UI
 

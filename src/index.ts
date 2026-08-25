@@ -281,6 +281,7 @@ function renderHubPage(index: HubIndex): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Alan's Skill Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23cf222e'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif' font-weight='700'>S</text></svg>">
 <style>${CSS}</style>
 </head>
 <body>
@@ -358,6 +359,7 @@ function renderSkillPage(skill: SkillMeta, md: string, index: HubIndex): string 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escapeHtml(skill.name)} · Alan's Skill Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='45' fill='%23cf222e'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif' font-weight='700'>S</text></svg>">
 <style>${CSS}</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="print" onload="this.media='all'">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -522,6 +524,11 @@ export default {
 
       if (path === "/health" || path === "/healthz") {
         return jsonResponse({ status: "ok", skills: index.skills.length, timestamp: new Date().toISOString() });
+      }
+
+      if (path === "/favicon.ico") {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#cf222e"/><text x="50" y="68" font-size="52" text-anchor="middle" fill="white" font-family="sans-serif" font-weight="700">S</text></svg>`;
+        return new Response(svg, { headers: { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=86400" } });
       }
 
       if (path === "/" || path === "/index.html") {
